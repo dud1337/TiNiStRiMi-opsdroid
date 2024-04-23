@@ -68,7 +68,7 @@ class tinistrimiMonitor(Skill):
     ##################################################################
     def check_stream_status(self):
         try:
-            response = requests.get(self.config.get('stream_status_url'))
+            response = requests.get(self.config.get('status_url'))
             if response.status_code == 200:
                 data = response.json()
                 status = data.get('status') == 'online'
@@ -94,17 +94,17 @@ class tinistrimiMonitor(Skill):
         data = await event.json()
 
         # wait 30 s to see if this is a flicker
-        # sometimes OBS will spam messages, wait longer if so
+        # sometimes OBS will spam messages; wait longer if so
         await sleep(30)
         while datetime.datetime.today() - self.hook_flicker < datetime.timedelta(seconds=10):
-            await sleep(5)
+            await sleep(10)
 
-        status = self.check_stream_status
+        status = self.check_stream_status()
 
         if data['stream_state_change'] == 'start' and status:
             await self.opsdroid.send(
                 Message(
-                    text='<h1>⚡️ STARTED <a href="https://matrix.to/#/#stream:138.io">#stream:138.io</a> <a href="' + self.config.get('stream_url') + '">STREAMIN\'</a> ⚡️</h1>',
+                    text=f"🟢 STARTED <a href=\"{self.config.get('stream_url')}\">STREAMIN'</a> {self.config.get('custom_message')}",
                     target=self.config.get('room_notify')
                 )
             )
@@ -115,7 +115,7 @@ class tinistrimiMonitor(Skill):
         elif data['stream_state_change'] == 'stop' and not status:
             await self.opsdroid.send(
                 Message(
-                    text='<h1>⚰️ STREAM OVER ⚰️</h1>',
+                    text='⚫️ STREAM OVER',
                     target=self.config.get('room_notify')
                 )
             )
@@ -128,12 +128,11 @@ class tinistrimiMonitor(Skill):
     @match_crontab('* * * * *', timezone="Europe/Zurich")
     async def stream_ongoing(self, event):
         if self.bot_thinks_stream_is_up:
-            await sleep(30)
             stream_up = self.check_stream_status()
             if stream_up:
                 if (datetime.datetime.today() - self.stream_since_when) > datetime.timedelta(hours=1):
                     await self.avoid_spam_send(
-                        '<h1>⚡️ <a href="' + self.config.get('stream_url') + '">STREAMIN\'</a> ⚡️</h1>'
+                        f"🟢 <a href=\"{self.config.get('stream_url')}\">STREAMIN'</a> {self.config.get('custom_message')}",
                     )
                     self.stream_since_when = datetime.datetime.today()
             else:

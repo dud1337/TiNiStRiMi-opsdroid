@@ -22,9 +22,9 @@ skills:
   nginx_rtmp_opsdroid:
     path: /tmp/skills/nginx_rtmp_opsdroid
     room_notify: "<room id>" # NOTE: For matrix, use internal ID, not alias.
-    rtmp_link: "rtmp://rtmp.your.server/live/stream"
     stream_url: "https://stream.your.server"
-    stream_status_url: "https://stream.your.server/stream_status"
+    status_url: "https://stream.your.server/stream_status"
+    custom_message: "custom message to appear when stream begins"
 ```
 
 Ensure, in your [TiNiStRiMi](https://github.com/dud1337/TiNiStRiMi) instance,
